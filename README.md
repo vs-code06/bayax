@@ -16,15 +16,9 @@
 </p>
 
 <p align="center">
-<a href="#-the-blueprint">
-  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Rocket.png" alt="Rocket" width="55" height="55" />
-</a>
-<a href="#-the-blueprint">
-  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Brain.png" alt="Brain" width="55" height="55" />
-</a>
-<a href="#-the-blueprint">
-  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Milky%20Way.png" alt="Milky Way" width="55" height="55" />
-</a>
+  <span style="font-size: 40px;">🚀</span>
+  <span style="font-size: 40px;">🧠</span>
+  <span style="font-size: 40px;">🌌</span>
 </p>
 
 </div>
