@@ -1,44 +1,36 @@
-import { Request, Response } from "express";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import dotenv from "dotenv";
-dotenv.config();
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.analyzeIdea = void 0;
+const generative_ai_1 = require("@google/generative-ai");
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
+const genAI = new generative_ai_1.GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
-
-interface IdeaRequestBody {
-  step?: string;
-  field: string;
-  intent: string;
-  content?: string;
-  techStack?: string;
-  username?: string;
-}
-
-export const analyzeIdea = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { field, intent, content, techStack }: IdeaRequestBody = req.body;
-
-    let promptContext = "";
-
-    if (intent === "need_idea") {
-      promptContext = `
+const analyzeIdea = async (req, res) => {
+    try {
+        const { field, intent, content, techStack } = req.body;
+        let promptContext = "";
+        if (intent === "need_idea") {
+            promptContext = `
         USER SCENARIO: The user wants to build something in the "${field}" field but DOES NOT have a specific idea.
         USER CONSTRAINTS: "${content || "None provided"}"
         PREFERRED TECH: "${techStack || "Any"}"
         TASK: Generate a highly viable, modern startup idea for this user in the ${field} space.
         Then analyze that generated idea as if it was their own.
       `;
-    } else {
-      promptContext = `
+        }
+        else {
+            promptContext = `
         USER SCENARIO: The user has a specific idea in the "${field}" field.
         IDEA DESCRIPTION: "${content}"
         PREFERRED TECH: "${techStack || "Best suited for the project"}"
         TASK: Analyze this specific idea. Enhance it, structure it, and validate it.
       `;
-    }
-
-    const systemPrompt = `
+        }
+        const systemPrompt = `
       You are BayaX, the world's most advanced Product Architect AI.
       Your goal is to transform separate inputs into a complete EXECUTION BLUEPRINT.
 
@@ -92,19 +84,18 @@ export const analyzeIdea = async (req: Request, res: Response): Promise<void> =>
       CONTEXT:
       ${promptContext}
     `;
-
-    const result = await model.generateContent(systemPrompt);
-    const response = await result.response;
-    const responseText = response.text();
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    
-    if (!jsonMatch) {
-      throw new Error("AI failed to return a valid JSON structure.");
+        const result = await model.generateContent(systemPrompt);
+        const response = await result.response;
+        const responseText = response.text();
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+            throw new Error("AI failed to return a valid JSON structure.");
+        }
+        const jsonResponse = JSON.parse(jsonMatch[0]);
+        res.status(200).json({ success: true, data: jsonResponse });
     }
-
-    const jsonResponse = JSON.parse(jsonMatch[0]);
-    res.status(200).json({ success: true, data: jsonResponse });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message || "AI Analysis Failed", error: error.message });
-  }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message || "AI Analysis Failed", error: error.message });
+    }
 };
+exports.analyzeIdea = analyzeIdea;

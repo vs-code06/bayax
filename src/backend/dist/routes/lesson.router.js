@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.lessonRouter = void 0;
+const express_1 = require("express");
+const lesson_controller_1 = require("../controller/lesson.controller");
+const auth_1 = require("../middlewares/auth");
+const lessonRouter = (0, express_1.Router)();
+exports.lessonRouter = lessonRouter;
+lessonRouter.post("/createPlan", auth_1.auth, lesson_controller_1.createPlan);
+lessonRouter.get("/viewAllLessonPlans", auth_1.auth, lesson_controller_1.viewAllPlans);
