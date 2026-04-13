@@ -1,17 +1,12 @@
-import axios from "axios";
-
-const axiosPlan = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL || "http://localhost:3004/api/v1"}/lesson`,
-  withCredentials: true,
-});
+import axiosInstance from "./axiosInstance";
 
 const genereatePlan = async ({ subject, topic, grade, duration }) => {
   try {
     const username = localStorage.getItem("username");
     // console.log(username);
 
-    const response = await axiosPlan.post(
-      "/createPlan",
+    const response = await axiosInstance.post(
+      "/lesson/createPlan",
       {
         subject,
         topic,
@@ -24,6 +19,7 @@ const genereatePlan = async ({ subject, topic, grade, duration }) => {
     return response;
   } catch (error) {
     console.log(`error while creating the user : ${error}`);
+    return error.response;
   }
 };
 

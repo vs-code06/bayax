@@ -1,13 +1,8 @@
-import axios from "axios";
-
-const axiosIdea = axios.create({
-    baseURL: `${import.meta.env.VITE_API_URL || "http://localhost:3004/api/v1"}/idea`,
-    withCredentials: true,
-});
+import axiosInstance from "./axiosInstance";
 
 const analyzeIdea = async ({ field, intent, content, techStack, username }) => {
     try {
-        const response = await axiosIdea.post("/analyze", {
+        const response = await axiosInstance.post("/idea/analyze", {
             field,
             intent,
             content,

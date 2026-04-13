@@ -1,14 +1,15 @@
 import { Request, Response } from "express";
-import bcrypt from "bcrypt";
 import { signUpObject, signInObject } from "../utils/zod";
-import { UserModel } from "../model/user.model";
+import { UserService } from "../services/UserService";
 import { LessonPlanModel } from "../model/lesson.model";
 import { JWTService } from "../services/JWTService";
 
 export class UserController {
+  private readonly userService: UserService;
   private readonly jwtService: JWTService;
 
   constructor() {
+    this.userService = new UserService();
     this.jwtService = new JWTService();
   }
 
@@ -29,28 +30,21 @@ export class UserController {
       return;
     }
 
-    const { email, username, password } = parsedObject.data;
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     try {
-      const existingUser = await UserModel.findOne({ email });
-      if (existingUser) {
-        res.status(409).json({ msg: "same email Id exists" });
-        return;
-      }
-
-      const user = await UserModel.create({ email, username, password: hashedPassword });
-      const accessToken = this.jwtService.generateAccessToken(user._id as string);
-      const refreshToken = this.jwtService.generateRefreshToken(user._id as string);
+      const result = await this.userService.register(parsedObject.data);
       const options = this.getCookieOptions();
 
       res
         .status(200)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
-        .json({ msg: "user created successfully", username: user.username });
+        .cookie("accessToken", result.tokens.accessToken, options)
+        .cookie("refreshToken", result.tokens.refreshToken, options)
+        .json({ msg: "user created successfully", username: result.username });
     } catch (error: any) {
-      res.status(500).json({ msg: `something went wrong while creating user: ${error}` });
+      if (error.message === "EMAIL_EXISTS") {
+        res.status(409).json({ msg: "same email Id exists" });
+      } else {
+        res.status(500).json({ msg: `something went wrong while creating user: ${error}` });
+      }
     }
   };
 
@@ -61,32 +55,21 @@ export class UserController {
       return;
     }
 
-    const { email, password } = parsedObject.data;
-
     try {
-      const user = await UserModel.findOne({ email });
-      if (!user) {
-        res.status(400).json({ msg: "incorrect password or email" });
-        return;
-      }
-
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        res.status(400).json({ msg: "incorrect password or email" });
-        return;
-      }
-
-      const accessToken = this.jwtService.generateAccessToken(user._id as string);
-      const refreshToken = this.jwtService.generateRefreshToken(user._id as string);
+      const result = await this.userService.login(parsedObject.data.email, parsedObject.data.password);
       const options = this.getCookieOptions();
 
       res
         .status(200)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
-        .json({ msg: "user logged in Successfully", username: user.username });
+        .cookie("accessToken", result.tokens.accessToken, options)
+        .cookie("refreshToken", result.tokens.refreshToken, options)
+        .json({ msg: "user logged in Successfully", username: result.username });
     } catch (error: any) {
-      res.status(500).json({ msg: `something went wrong while signin: ${error.message}` });
+      if (error.message === "INVALID_CREDENTIALS") {
+        res.status(400).json({ msg: "incorrect password or email" });
+      } else {
+        res.status(500).json({ msg: `something went wrong while signin: ${error.message}` });
+      }
     }
   };
 
@@ -98,8 +81,7 @@ export class UserController {
     }
 
     try {
-      const decoded = this.jwtService.verifyRefreshToken(token);
-      const accessToken = this.jwtService.generateAccessToken(decoded.userId);
+      const accessToken = this.userService.refreshAccessToken(token);
       res.cookie("accessToken", accessToken, this.getCookieOptions());
       res.status(200).json({ msg: "Token refreshed" });
     } catch {

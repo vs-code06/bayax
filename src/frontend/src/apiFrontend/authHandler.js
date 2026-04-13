@@ -1,41 +1,37 @@
-import axios from "axios";
+import axiosInstance from "./axiosInstance";
 
-// axios.defaults.baseURL = 'http://localhost:3004/api/v1'
-
-const axiosAuth = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL || "http://localhost:3004/api/v1"}/user`,
-  withCredentials: true,
-});
 const createUser = async ({ email, username, password }) => {
   try {
-    const response = await axiosAuth.post("/signup", {
+    const response = await axiosInstance.post("/user/signup", {
       email,
       username,
       password,
     });
 
-    // console.log(response.data);
-
     return response.data;
   } catch (error) {
     console.log(`error while creating the user : ${error}`);
+    return error.response?.data;
   }
 };
 
 const logInUser = async ({ email, password }) => {
-  const response = await axiosAuth.post("/signin", {
-    email,
-    password,
-  });
+  try {
+    const response = await axiosInstance.post("/user/signin", {
+      email,
+      password,
+    });
 
-  // console.log(response.data);
-
-  return response.data;
+    return response.data;
+  } catch (error) {
+    console.log(`error while logging in : ${error}`);
+    return error.response?.data;
+  }
 };
 
 const LogOutUser = async () => {
   try {
-    await axiosAuth.get("/api/logOut", { withCredentials: true });
+    await axiosInstance.get("/user/api/logOut");
   } catch (error) {
     console.log("logOut failed");
   }
